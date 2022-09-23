@@ -77,8 +77,6 @@ import { mapState, mapActions } from 'vuex';
 
 import { chunk, sortBy, get } from 'lodash';
 
-const MIN_DATE = new Date(-8640000000000000);
-
 const MAX_CHUNK = 100;
 
 export default {
@@ -109,50 +107,15 @@ export default {
       tableClasses: [ ],
       fields: [ ],
       ratings: { },
-      sortBy: 'none'
+      sortBy: this.$route.meta.isLibrary ? 'attributes.dateAdded|desc' : 'none',
     };
-  },
-  watch: {
-    // isAuthorized: 'fetchRatings',
-    async loading () {
-      if (!this.loading && this.isLibrary) {
-        const addedSongs = await this.fetchAdded();
-
-        console.log(this.songs[0]);
-        for (const song of this.songs) {
-          song.attributes.dateAdded = MIN_DATE;
-          // song.attributes.dateAdded = new Date(new Date() - Math.random() * (1e+12));
-        }
-
-        let notFoundSongs = [];
-
-        for (const addedSong of addedSongs) {
-          const song = this.songs.find(s => s.id.endsWith(addedSong.id.slice('l.'.length)));
-
-          if (song) {
-            song.attributes.dateAdded = addedSong.attributes.dateAdded;
-
-            console.log(song);
-          } else {
-            notFoundSongs.push(addedSong);
-            // console.log('Could not find song', addedSong.id);
-          }
-        }
-
-        console.log(notFoundSongs);
-      }
-    },
   },
   computed: {
     ...mapState('musicKit', ['nowPlayingItem', 'shuffleMode', 'isAuthorized']),
     ...mapState('preferences', ['queueAllSongs']),
 
-    isLibrary () {
-      return this.$route.meta.isLibrary;
-      // return this.songs[0] && this.songs[0].type === 'library-songs';
-    },
     sortOptions () {
-      const librarySortingOptions = (this.isLibrary ? {
+      const librarySortingOptions = (this.$route.meta.isLibrary ? {
         'attributes.dateAdded|asc': 'Date added (Asc)',
         'attributes.dateAdded|desc': 'Date added (Desc)',
       } : {});
@@ -229,21 +192,6 @@ export default {
   },
   methods: {
     ...mapActions('musicKit', ['shuffle', 'setQueue', 'play', 'changeTo']),
-    async fetchAdded () {
-      let added = [];
-
-      const options = {
-        limit: 25
-      };
-      for (var offset = 0, res = null; (res === null || res.length !== 0); offset += options.limit) {
-        res = await this.$store.getters['musicKit/recentlyAdded']({ ...options, offset });
-        added.push(...res);
-      }
-
-      console.log({ added });
-      return added;
-    },
-
     async fetchRatings () {
       // Don't run this for the queue as it resutls in errors.
       if (this.isQueue) {

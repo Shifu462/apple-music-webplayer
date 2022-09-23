@@ -73,9 +73,15 @@ const getters = {
 
   // Data fetching
   get (state) {
-    return (library, type, id, options) => {
-      console.log('get', library, type, id, options);
-      return getApi(library)[type](id, options);
+    return async (library, type, id, options) => {
+      const resp = await getApi(library)[type](id, options);
+
+      if (library && options['include[library-songs]'].includes('albums')) {
+        for (const song of resp) {
+          song.attributes.dateAdded = song.relationships.albums.data[0].attributes.dateAdded;
+        }
+      }
+      return resp;
     };
   },
   collection (state) {

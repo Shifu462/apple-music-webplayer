@@ -56,7 +56,7 @@ export default {
 
       let options = {
         limit: 100,
-        // 'fields[library-songs]': 'artwork,dateAdded',
+        'include[library-songs]': 'albums',
       };
       try {
         for (var offset = 0, res = null; res === null || res.length !== 0; offset += options.limit) {
