@@ -50,6 +50,19 @@ export function apiHeaders () {
   });
 }
 
+const attempt = async (cb, count = 0) => {
+  if (count > 5) {
+    throw new Error('Attempts limit exceeded', cb);
+  }
+
+  try {
+    return await cb();
+  } catch (err) {
+    // eslint-disable-next-line no-return-await
+    return await attempt(cb, count + 1);
+  }
+};
+
 const getters = {
   storefront (state) {
     return state.storefront;
@@ -74,7 +87,8 @@ const getters = {
   // Data fetching
   get (state) {
     return async (library, type, id, options) => {
-      const resp = await getApi(library)[type](id, options);
+      const cb = () => getApi(library)[type](id, options);
+      const resp = await attempt(cb);
 
       if (library && options['include[library-songs]'].includes('albums')) {
         for (const song of resp) {
