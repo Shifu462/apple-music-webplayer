@@ -1,24 +1,15 @@
-// Import Vue + extensions
 import Vue from 'vue';
 import App from './App.vue';
-
-// Load Font Awesome
 import 'font-awesome/css/font-awesome.css';
 
-// Vue.js 2 filters
-// (note use src since dist includes eval() calls, which breaks CSP)
+// TODO: remove pluralize('songs')
 import Vue2Filters from 'vue2-filters/src';
 
-// Vue Moment
+// TODO: use toLocaleDateString() instead of moment
 import VueMoment from 'vue-moment';
 
-// Bootstrap
 import BootstrapVue from 'bootstrap-vue';
-
-// Vue router
 import VueRouter from 'vue-router';
-
-// Load Vuex store
 import store from './store';
 
 // Raven

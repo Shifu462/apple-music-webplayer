@@ -1,4 +1,4 @@
-AppHeader<template>
+<template>
   <div class="header">
     <playback-controls class="playback-controls" />
     <volume-control class="volume-control" />
@@ -138,7 +138,7 @@ $nav-fg: $gray-500;
   background: transparent;
 }
 
-.nav /deep/ {
+::v-deep(.nav) {
   min-width: 100%;
   text-align: center;
   background: $nav-bg;
@@ -153,7 +153,7 @@ $nav-fg: $gray-500;
     margin: 0.5rem;
   }
 
-  a, a:hover, a:focus, {
+  a, a:hover, a:focus {
     color: inherit;
     text-decoration: none;
   }

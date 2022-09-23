@@ -1,4 +1,3 @@
-
 <template>
   <img :data-src="src" src="//:0" :alt="alt" />
 </template>

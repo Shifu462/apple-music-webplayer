@@ -367,7 +367,7 @@ header {
   margin: 20px;
 }
 
-.no-spacing /deep/ button {
+::v-deep(.no-spacing) button {
   padding: 0;
   margin: 0;
   text-decoration: none;

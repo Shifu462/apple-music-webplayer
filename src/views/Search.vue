@@ -61,7 +61,6 @@
 <script>
 import Raven from 'raven-js';
 import { mapState } from 'vuex';
-import URI from 'urijs';
 
 import Loader from '../components/utils/Loader';
 import ErrorMessage from '../components/utils/ErrorMessage';
@@ -168,9 +167,9 @@ export default {
       console.log(this.results[type].next);
 
       try {
-        let nextURL = URI(this.results[type].next);
-        nextURL = nextURL.addSearch('limit', '25');
-        let res = await this.$store.getters['musicKit/fetch'](nextURL.toString());
+        const nextURL = new URL(this.results[type].next);
+        nextURL.searchParams.set('limit', '25');
+        const res = await this.$store.getters['musicKit/fetch'](nextURL.toString());
 
         for (var key in res.results) {
           if (key.startsWith('library-')) {
@@ -253,7 +252,7 @@ export default {
   }
 }
 
-.is-authorized.search-scope /deep/ .btn {
+::v-deep(.is-authorized.search-scope) .btn {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
