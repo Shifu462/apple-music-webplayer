@@ -1,17 +1,17 @@
 <template>
   <div class="list">
     <div class="items">
-      <song-collection-item
+      <SongCollectionItem
         class="item"
         v-for="item in collection"
         :key="item.id"
         :item="item" />
 
       <div class="loading" v-if="loading">
-        <loader class="loading" />
+        <Loader class="loading" />
       </div>
       <div class="load-more" v-else-if="loadMore">
-        <b-btn variant="link" v-on:click="loadMore()">
+        <b-btn variant="link" @click="loadMore()">
           <div class="artwork text-center"><i class="fa fa-ellipsis-h"><span class="sr-only">Load more</span></i></div>
         </b-btn>
       </div>

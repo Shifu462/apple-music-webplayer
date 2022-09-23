@@ -2,15 +2,17 @@
   <div class="recent">
     <h1 class="sr-only">Recent</h1>
 
-    <h2 class="h5">Heavy rotation</h2>
-    <song-collection-list :collection="heavyRotation" />
-    <error-message v-if="heavyRotationError" :error="heavyRotationError" />
-    <loader v-if="loadingHeavyRotation" class="loading" />
+    <!--
+      <h2 class="h5">Heavy rotation</h2>
+      <song-collection-list :collection="heavyRotation" />
+      <error-message v-if="heavyRotationError" :error="heavyRotationError" />
+      <loader v-if="loadingHeavyRotation" class="loading" />
 
-    <h2 class="h5">Recently played</h2>
-    <song-collection-list :collection="played" />
-    <error-message v-if="playedError" :error="playedError" />
-    <loader v-if="loadingPlayed" class="loading" />
+      <h2 class="h5">Recently played</h2>
+      <song-collection-list :collection="played" />
+      <error-message v-if="playedError" :error="playedError" />
+      <loader v-if="loadingPlayed" class="loading" />
+    -->
 
     <h2 class="h5">Recently added</h2>
     <song-collection-list :collection="added" />
@@ -22,11 +24,9 @@
 <script>
 import Raven from 'raven-js';
 
-import Loader from '../components/utils/Loader';
-import ErrorMessage from '../components/utils/ErrorMessage';
-import SongCollectionList from '../components/collections/SongCollectionList';
-
-import mergeWith from 'lodash.mergewith';
+import Loader from '../components/utils/Loader.vue';
+import ErrorMessage from '../components/utils/ErrorMessage.vue';
+import SongCollectionList from '../components/collections/SongCollectionList.vue';
 
 export default {
   name: 'Recent',
@@ -60,14 +60,16 @@ export default {
       this.loadingAdded = true;
       this.addedError = null;
 
-      let options = {
-        limit: 10
+      const options = {
+        limit: 25
       };
       try {
         for (var offset = 0, res = null; (res === null || res.length !== 0); offset += options.limit) {
-          res = await this.$store.getters['musicKit/recentlyAdded'](mergeWith(options, { offset: offset }));
-          this.added = this.added.concat(res);
+          res = await this.$store.getters['musicKit/recentlyAdded']({ ...options, offset });
+          this.added.push(...res);
         }
+
+        console.log(this.added);
       } catch (err) {
         console.error(err);
         Raven.captureException(err);
@@ -112,8 +114,8 @@ export default {
     },
     fetch () {
       this.fetchAdded();
-      this.fetchPlayed();
-      this.fetchHeavyRotation();
+      // this.fetchPlayed();
+      // this.fetchHeavyRotation();
     }
   },
   created () {

@@ -7,7 +7,8 @@
     </b-form>
 
     <p class="text-muted">
-      <i class="fa fa-spinner fa-spin loading" aria-hidden="true" v-if="loading" /> {{ songs.length }} {{ songs.length | pluralize('song') }} &mdash; {{ duration | humanize }}
+      <i class="fa fa-spinner fa-spin loading" aria-hidden="true" v-if="loading" />
+      {{ songs.length }} {{ songs.length > 1 ? 'songs' : 'song' }} &mdash; {{ duration | humanize }}
     </p>
 
     <div class="songs" style="clear: both">
@@ -76,6 +77,8 @@ import { mapState, mapActions } from 'vuex';
 
 import { chunk, sortBy, get } from 'lodash';
 
+const MIN_DATE = new Date(-8640000000000000);
+
 const MAX_CHUNK = 100;
 
 export default {
@@ -106,7 +109,55 @@ export default {
       tableClasses: [ ],
       fields: [ ],
       ratings: { },
-      sortOptions: {
+      sortBy: 'none'
+    };
+  },
+  watch: {
+    // isAuthorized: 'fetchRatings',
+    async loading () {
+      if (!this.loading && this.isLibrary) {
+        const addedSongs = await this.fetchAdded();
+
+        console.log(this.songs[0]);
+        for (const song of this.songs) {
+          song.attributes.dateAdded = MIN_DATE;
+          // song.attributes.dateAdded = new Date(new Date() - Math.random() * (1e+12));
+        }
+
+        let notFoundSongs = [];
+
+        for (const addedSong of addedSongs) {
+          const song = this.songs.find(s => s.id.endsWith(addedSong.id.slice('l.'.length)));
+
+          if (song) {
+            song.attributes.dateAdded = addedSong.attributes.dateAdded;
+
+            console.log(song);
+          } else {
+            notFoundSongs.push(addedSong);
+            // console.log('Could not find song', addedSong.id);
+          }
+        }
+
+        console.log(notFoundSongs);
+      }
+    },
+  },
+  computed: {
+    ...mapState('musicKit', ['nowPlayingItem', 'shuffleMode', 'isAuthorized']),
+    ...mapState('preferences', ['queueAllSongs']),
+
+    isLibrary () {
+      return this.$route.meta.isLibrary;
+      // return this.songs[0] && this.songs[0].type === 'library-songs';
+    },
+    sortOptions () {
+      const librarySortingOptions = (this.isLibrary ? {
+        'attributes.dateAdded|asc': 'Date added (Asc)',
+        'attributes.dateAdded|desc': 'Date added (Desc)',
+      } : {});
+
+      return {
         'none': 'None',
         'attributes.name|asc': 'Title (Asc)',
         'attributes.name|desc': 'Title (Desc)',
@@ -115,18 +166,10 @@ export default {
         'attributes.albumName|asc': 'Album (Asc)',
         'attributes.albumName|desc': 'Album (Desc)',
         'attributes.durationInMillis|asc': 'Length (Asc)',
-        'attributes.durationInMillis|desc': 'Length (Desc)'
-      },
-      sortBy: 'none'
-    };
-  },
-  watch: {
-    isAuthorized: 'fetchRatings',
-    songs: 'fetchRatings'
-  },
-  computed: {
-    ...mapState('musicKit', ['nowPlayingItem', 'shuffleMode', 'isAuthorized']),
-    ...mapState('preferences', ['queueAllSongs']),
+        'attributes.durationInMillis|desc': 'Length (Desc)',
+        ...librarySortingOptions,
+      };
+    },
     duration () {
       return this.songs.reduce((total, song) => total + ((song.attributes || {}).durationInMillis || 0), 0);
     },
@@ -144,7 +187,7 @@ export default {
 
       let sort = this.sortBy.split('|');
       let sorted = sortBy(this.songs, [ s => {
-        var value = get(s, sort[0]);
+        const value = get(s, sort[0]);
         if (typeof value === 'string') {
           return value.toLowerCase();
         }
@@ -173,18 +216,11 @@ export default {
     EventBus.$off('song:rated', this.rated);
   },
   mounted () {
-    // Fetch ratings
-    this.fetchRatings();
-
     // Scroll highlighted song into view
     try {
       if (this.highlight) {
-        let el = this.$el.querySelector(`#song-${this.highlight}`);
-        if (el) {
-          el.scrollIntoView({
-            block: 'center'
-          });
-        }
+        const el = this.$el.querySelector(`#song-${this.highlight}`);
+        el && el.scrollIntoView({ block: 'center' });
       }
     } catch (err) {
       console.error(err);
@@ -193,6 +229,21 @@ export default {
   },
   methods: {
     ...mapActions('musicKit', ['shuffle', 'setQueue', 'play', 'changeTo']),
+    async fetchAdded () {
+      let added = [];
+
+      const options = {
+        limit: 25
+      };
+      for (var offset = 0, res = null; (res === null || res.length !== 0); offset += options.limit) {
+        res = await this.$store.getters['musicKit/recentlyAdded']({ ...options, offset });
+        added.push(...res);
+      }
+
+      console.log({ added });
+      return added;
+    },
+
     async fetchRatings () {
       // Don't run this for the queue as it resutls in errors.
       if (this.isQueue) {

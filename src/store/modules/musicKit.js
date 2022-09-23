@@ -33,7 +33,7 @@ const state = {
 /**
  * Return the appropriate API object.
  */
-let getApi = (library) => {
+let getApi = (library = false) => {
   let instance = MusicKit.getInstance();
   return library ? instance.api.library : instance.api;
 };
@@ -56,23 +56,25 @@ const getters = {
   },
 
   recommendations (state) {
-    return getApi(false).recommendations();
+    return getApi().recommendations();
   },
   recentlyAdded (state) {
     return options => {
-      return getApi(true).collection('recently-added', null, options);
+      const res = getApi().library.collection('recently-added', null, options);
+      return res;
     };
   },
   recentlyPlayed (state) {
-    return getApi(false).recentPlayed();
+    return getApi().recentPlayed();
   },
   heavyRotation (state) {
-    return getApi(false).historyHeavyRotation();
+    return getApi().historyHeavyRotation();
   },
 
   // Data fetching
   get (state) {
     return (library, type, id, options) => {
+      console.log('get', library, type, id, options);
       return getApi(library)[type](id, options);
     };
   },
@@ -174,8 +176,6 @@ const actions = {
       }
     });
 
-    let localStorage = window.localStorage;
-
     // Check for EME
     commit('supportsEME', instance.player.canSupportDRM);
 
@@ -188,7 +188,7 @@ const actions = {
     // Update volume status
     commit('volume', instance.player.volume);
 
-    if (localStorage && localStorage.getItem('volume')) {
+    if (localStorage.getItem('volume')) {
       try {
         dispatch('setVolume', JSON.parse(localStorage.getItem('volume') || '1'));
       } catch (err) {
@@ -200,7 +200,7 @@ const actions = {
     // Update bitrate
     commit('bitrate', instance.bitrate);
 
-    if (localStorage && localStorage.getItem('bitrate')) {
+    if (localStorage.getItem('bitrate')) {
       try {
         dispatch('setBitrate', MusicKit.PlaybackBitrate[localStorage.getItem('bitrate') || 'HIGH']);
       } catch (err) {
@@ -212,7 +212,7 @@ const actions = {
     // Update shuffle mode
     commit('shuffleMode', instance.player.shuffleMode);
 
-    if (localStorage && localStorage.getItem('shuffle')) {
+    if (localStorage.getItem('shuffle')) {
       try {
         dispatch('shuffle', JSON.parse(localStorage.getItem('shuffle') || 'false'));
       } catch (err) {
@@ -224,7 +224,7 @@ const actions = {
     // Update shuffle mode
     commit('repeatMode', instance.player.repeatMode);
 
-    if (localStorage && localStorage.getItem('repeat')) {
+    if (localStorage.getItem('repeat')) {
       try {
         dispatch('repeat', JSON.parse(localStorage.getItem('repeat') || '0'));
       } catch (err) {
@@ -511,9 +511,8 @@ const actions = {
     });
   },
 
-  // Library
   addToLibrary (_, items) {
-    let api = getApi(false);
+    let api = getApi();
     return api.addToLibrary(items);
   },
 
@@ -530,8 +529,7 @@ const actions = {
 
         if (res.status === 204) {
           // Invalid local cache
-          let api = getApi(true);
-          api.clearCacheItems();
+          getApi().library.clearCacheItems();
 
           // Return successful
           resolve(true);
@@ -564,7 +562,7 @@ const actions = {
 
         if (res.status === 201) {
           // Invalid local cache
-          let api = getApi(true);
+          let api = getApi().library;
           api.clearCacheItems();
 
           // Return successful

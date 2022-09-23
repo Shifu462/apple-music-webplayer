@@ -46,7 +46,6 @@
 import { mapState } from 'vuex';
 import { errorMessage, trackToMediaItem, EventBus } from '../../utils';
 import Raven from 'raven-js';
-import mergeWith from 'lodash.mergewith';
 
 import Loader from '../utils/Loader';
 import ErrorMessage from '../utils/ErrorMessage';
@@ -103,7 +102,7 @@ export default {
       try {
         let options = { limit: 100 };
         for (var offset = 0, res = null; res === null || res.length !== 0; offset += options.limit) {
-          res = await this.$store.getters['musicKit/get'](true, 'playlists', undefined, mergeWith(options, { offset: offset }));
+          res = await this.$store.getters['musicKit/get'](true, 'playlists', undefined, { ...options, offset });
           this.playlists = this.playlists.concat(res);
         }
       } catch (err) {

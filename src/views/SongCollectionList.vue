@@ -16,13 +16,15 @@
 </template>
 
 <script>
+
+// '/v1/me/library/playlists?platform=web&extend=editorialVideo&fields[playlists]=lastModifiedDate&filter[featured]=made-for-you&include[library-playlists]=catalog&fields[library-playlists]=artwork,name,playParams,dateAdded'
+
 import Raven from 'raven-js';
 
 import Loader from '../components/utils/Loader';
 import ErrorMessage from '../components/utils/ErrorMessage';
 import Songs from '../components/collections/Songs';
 import SongCollectionItem from '../components/collections/SongCollectionItem';
-import mergeWith from 'lodash.mergewith';
 
 export default {
   name: 'SongCollectionList',
@@ -53,11 +55,13 @@ export default {
       this.loading = true;
 
       let options = {
-        limit: 100
+        limit: 100,
+        // 'fields[library-songs]': 'artwork,dateAdded',
       };
       try {
         for (var offset = 0, res = null; res === null || res.length !== 0; offset += options.limit) {
-          res = await this.$store.getters['musicKit/get'](this.$route.meta.isLibrary, this.$route.meta.type, this.$route.params.id, mergeWith(options, { offset: offset }));
+          // console.log('fetching', this.$route.meta.isLibrary, this.$route.meta.type, offset, options);
+          res = await this.$store.getters['musicKit/get'](this.$route.meta.isLibrary, this.$route.meta.type, this.$route.params.id, { ...options, offset });
           this.collection = this.collection.concat(res);
         }
       } catch (err) {

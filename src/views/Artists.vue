@@ -14,7 +14,6 @@ import Raven from 'raven-js';
 import Loader from '../components/utils/Loader';
 import ErrorMessage from '../components/utils/ErrorMessage';
 import ArtistsList from '../components/collections/Artists';
-import mergeWith from 'lodash.mergewith';
 
 export default {
   name: 'Artists',
@@ -48,7 +47,7 @@ export default {
       };
       try {
         for (var offset = 0, res = null; res === null || res.length !== 0; offset += options.limit) {
-          res = await this.$store.getters['musicKit/get'](this.$route.meta.isLibrary, 'artists', null, mergeWith(options, { offset: offset }));
+          res = await this.$store.getters['musicKit/get'](this.$route.meta.isLibrary, 'artists', null, { ...options, offset });
           this.collection = this.collection.concat(res);
         }
       } catch (err) {

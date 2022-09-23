@@ -2,9 +2,6 @@ import Vue from 'vue';
 import App from './App.vue';
 import 'font-awesome/css/font-awesome.css';
 
-// TODO: remove pluralize('songs')
-import Vue2Filters from 'vue2-filters/src';
-
 // TODO: use toLocaleDateString() instead of moment
 import VueMoment from 'vue-moment';
 
@@ -19,7 +16,6 @@ import RavenVue from 'raven-js/plugins/vue';
 // Private config
 import privateConfig from './private';
 
-Vue.use(Vue2Filters);
 Vue.use(VueMoment);
 Vue.use(BootstrapVue);
 Vue.use(VueRouter);
@@ -44,5 +40,4 @@ if (MusicKit) {
 new Vue({
   store,
   render: h => h(App),
-  mixins: [Vue2Filters.mixin]
 }).$mount('#app');
