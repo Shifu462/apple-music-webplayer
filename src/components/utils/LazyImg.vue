@@ -3,8 +3,6 @@
 </template>
 
 <script>
-import 'intersection-observer'; // Polyfill
-
 const intersectionObserver = new IntersectionObserver(function (entries) {
   for (const entry of entries) {
     const img = entry.target;
